@@ -87,6 +87,7 @@ docker run --rm -it -p 3000:3000 -v "$(pwd):/app" -v /app/node_modules -w /app n
 
 ```bash
 nix develop
+npm install
 npm run dev
 ```
 
