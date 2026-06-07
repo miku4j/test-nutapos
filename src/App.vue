@@ -56,7 +56,7 @@
                 <v-btn icon="mdi-close" size="small" variant="text" @click="showDialog = false" />
               </div>
 
-              <v-form ref="formRef" class="flex flex-col gap-4">
+              <v-form ref="formRef" class="flex flex-col gap-4" @submit.prevent="submit">
                 <v-text-field
                   ref="nameField"
                   v-model="discountName"
@@ -98,9 +98,9 @@
                     <v-btn color="primary" size="small" value="amount">Rp</v-btn>
                   </v-btn-toggle>
                 </div>
-              </v-form>
 
-              <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" @click="submit">Simpan</AppButton>
+                <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" type="submit">Simpan</AppButton>
+              </v-form>
             </div>
           </v-dialog>
         </app-box>

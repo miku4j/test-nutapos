@@ -1,12 +1,12 @@
 import { ref, type Ref } from 'vue'
 
-interface CrudState<T> {
+export interface CrudState<T> {
   data: Ref<T[]>
   loading: Ref<boolean>
   error: Ref<string | null>
 }
 
-interface CrudMethods<T extends { _id?: string }> {
+export interface CrudMethods<T extends { _id?: string }> {
   list: () => Promise<T[]>
   get: (id: string) => Promise<T>
   create: (payload: Omit<T, '_id'>) => Promise<T>
@@ -15,7 +15,7 @@ interface CrudMethods<T extends { _id?: string }> {
   save: (item: T | Omit<T, '_id'>) => Promise<T>
 }
 
-type UseCrudReturn<T extends { _id?: string }> = CrudState<T> & CrudMethods<T>
+export type UseCrudReturn<T extends { _id?: string }> = CrudState<T> & CrudMethods<T>
 
 export function useCrud<T extends { _id?: string }> (
   url: string,
