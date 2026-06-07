@@ -100,7 +100,7 @@
                 </div>
               </v-form>
 
-              <AppButton class="mt-2 w-full" @click="submit">Simpan</AppButton>
+              <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" @click="submit">Simpan</AppButton>
             </div>
           </v-dialog>
         </app-box>
@@ -115,16 +115,20 @@
   import AppBox from './components/AppBox.vue'
   import AppButton from './components/AppButton.vue'
   import AppTitle from './components/AppTitle.vue'
+  import { useDiscount } from './composables/useDiscount'
 
   const menuOpen = ref(false)
-  const newShop = ref('crudcrud')
-  const selectedShop = ref('crudcrud')
+  const newShop = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
+  const selectedShop = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
+
+  const crud = useDiscount(selectedShop.value)
 
   const showDialog = ref(false)
   const discountName = ref('')
   const discountValue = ref<number | null>(null)
   const discountType = ref<'percentage' | 'amount'>('percentage')
   const formRef = ref<any>(null)
+  const saving = ref(false)
 
   const nameField = ref<any>(null)
   const valueField = ref<any>(null)
@@ -149,8 +153,23 @@
   ]
 
   async function submit () {
-    const { valid } = await formRef.value?.validate() ?? { valid: false }
+    const { valid } = await formRef.value?.validate() ?? { valid: ref(false) }
     if (!valid) return
-    showDialog.value = false
+
+    saving.value = true
+    try {
+      await crud.create({
+        name: discountName.value.trim(),
+        value: discountValue.value!,
+        type: discountType.value,
+      })
+      showDialog.value = false
+      formRef.value?.reset()
+      discountName.value = ''
+      discountValue.value = null
+      discountType.value = 'percentage'
+    } finally {
+      saving.value = false
+    }
   }
 </script>
