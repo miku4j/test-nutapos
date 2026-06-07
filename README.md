@@ -80,7 +80,7 @@ docker compose up
 
 ### docker run (one-liner)
 ```bash
-docker run --rm -it -p 3000:3000 -v "$(pwd):/app" -v /app/node_modules -w /app node:24-alpine sh -c "npm install && npm run dev"
+docker run --rm -it -p 3000:3000 -v "$(pwd):/app" -v /app/node_modules -w /app node:24-alpine sh -c "npm install && npm run dev -- --host 0.0.0.0"
 ```
 
 ## ❄️ Nix
