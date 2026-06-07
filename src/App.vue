@@ -187,7 +187,7 @@
 
       <v-snackbar
         v-model="showSnackbar"
-        :color="snackbarColor"
+        color="#046B5F"
         location="top center"
         timeout="3000"
       >
@@ -265,11 +265,8 @@
 
   const showSnackbar = ref(false)
   const snackbarMessage = ref('')
-  const snackbarColor = ref('success')
-
-  function showToast (message: string, color = 'success') {
+  function showToast (message: string) {
     snackbarMessage.value = message
-    snackbarColor.value = color
     showSnackbar.value = true
   }
 
@@ -302,10 +299,10 @@
       }
       if (editingItem.value) {
         await crud.update(editingItem.value._id!, payload)
-        showToast('Diskon berhasil diperbarui')
+        showToast(`Diskon "${editingItem.value.name}" berhasil diperbarui`)
       } else {
         await crud.create(payload)
-        showToast('Diskon berhasil ditambahkan')
+        showToast(`Diskon "${discountName.value.trim()}" berhasil ditambahkan`)
       }
       showDialog.value = false
       formRef.value?.reset()
@@ -323,11 +320,17 @@
     showDeleteConfirm.value = false
     saving.value = true
     try {
+      const names = crud.data.value
+        .filter(d => selected.value.includes(d._id!))
+        .map(d => d.name)
       for (const id of selected.value) {
         await crud.remove(id)
       }
       selected.value = []
-      showToast('Diskon berhasil dihapus')
+      const msg = names.length > 1
+        ? `${names.length} diskon berhasil dihapus`
+        : `Diskon "${names[0]}" berhasil dihapus`
+      showToast(msg)
     } finally {
       saving.value = false
     }
