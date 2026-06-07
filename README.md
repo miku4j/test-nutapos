@@ -71,6 +71,25 @@ npm run build
 - `npm run mcp`
 - `npm run mcp:revert`
 
+## 🐳 Docker
+
+### docker compose (recommended)
+```bash
+docker compose up
+```
+
+### docker run (one-liner)
+```bash
+docker run --rm -it -p 3000:3000 -v "$(pwd):/app" -v /app/node_modules -w /app node:24-alpine sh -c "npm install && npm run dev"
+```
+
+## ❄️ Nix
+
+```bash
+nix develop
+npm run dev
+```
+
 ## 💪 Support Vuetify Development
 
 This project uses Vuetify - an MIT licensed Open Source project. We are glad to welcome contributors and any support for ongoing development:
