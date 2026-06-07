@@ -6,71 +6,65 @@
 
         <AppCrudUrlInput v-model="crudUrl" />
 
-        <app-box class="flex flex-col justify-center items-center gap-2 h-full">
-          <img alt="No discount" :src="noDiscount" width="240">
-          <app-title class="mt-2" :level="2">Belum Ada Diskon</app-title>
-          <p class="text-center">Silahkan tambah diskon untuk menarik pelanggan dan meningkatakan penjualan.</p>
+        <AppEmptyState @create="showDialog = true" />
 
-          <AppButton prepend-icon="mdi-plus" @click="showDialog = true">Tambah Diskon</AppButton>
+        <v-dialog v-model="showDialog" :persistent="false">
+          <div v-click-outside="() => showDialog = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 lg:w-lg mx-auto">
+            <div class="mb-2 flex justify-between items-center">
+              <span class="font-semibold text-xl">
+                Tambah Diskon
+              </span>
 
-          <v-dialog v-model="showDialog" :persistent="false">
-            <div v-click-outside="() => showDialog = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 lg:w-lg mx-auto">
-              <div class="mb-2 flex justify-between items-center">
-                <span class="font-semibold text-xl">
-                  Tambah Diskon
-                </span>
+              <v-btn icon="mdi-close" size="small" variant="text" @click="showDialog = false" />
+            </div>
 
-                <v-btn icon="mdi-close" size="small" variant="text" @click="showDialog = false" />
-              </div>
+            <v-form ref="formRef" class="flex flex-col gap-4" @submit.prevent="submit">
+              <v-text-field
+                ref="nameField"
+                v-model="discountName"
+                :append-inner-icon="!discountName ? undefined : nameError ? 'mdi-alert-circle' : undefined"
+                hide-details="auto"
+                label="Nama Diskon"
+                placeholder="Misal: Diskon opening, diskon akhir tahun"
+                rounded="12"
+                :rules="nameRules"
+                variant="outlined"
+              />
 
-              <v-form ref="formRef" class="flex flex-col gap-4" @submit.prevent="submit">
+              <div class="flex items-center gap-2">
                 <v-text-field
-                  ref="nameField"
-                  v-model="discountName"
-                  :append-inner-icon="!discountName ? undefined : nameError ? 'mdi-alert-circle' : undefined"
+                  ref="valueField"
+                  v-model="discountValue"
+                  :append-inner-icon="!discountValue ? undefined : valueError ? 'mdi-alert-circle' : undefined"
+                  class="flex-1"
                   hide-details="auto"
-                  label="Nama Diskon"
-                  placeholder="Misal: Diskon opening, diskon akhir tahun"
+                  label="Diskon"
+                  :prefix="discountType === 'amount' ? 'Rp' : undefined"
                   rounded="12"
-                  :rules="nameRules"
+                  :rules="valueRules"
+                  :suffix="discountType === 'percentage' ? '%' : undefined"
+                  type="number"
                   variant="outlined"
                 />
 
-                <div class="flex items-center gap-2">
-                  <v-text-field
-                    ref="valueField"
-                    v-model="discountValue"
-                    :append-inner-icon="!discountValue ? undefined : valueError ? 'mdi-alert-circle' : undefined"
-                    class="flex-1"
-                    hide-details="auto"
-                    label="Diskon"
-                    :prefix="discountType === 'amount' ? 'Rp' : undefined"
-                    rounded="12"
-                    :rules="valueRules"
-                    :suffix="discountType === 'percentage' ? '%' : undefined"
-                    type="number"
-                    variant="outlined"
-                  />
+                <v-btn-toggle
+                  v-model="discountType"
+                  color="primary"
+                  density="compact"
+                  divided
+                  mandatory
+                  rounded="lg"
+                  variant="outlined"
+                >
+                  <v-btn color="primary" size="small" value="percentage">%</v-btn>
+                  <v-btn color="primary" size="small" value="amount">Rp</v-btn>
+                </v-btn-toggle>
+              </div>
 
-                  <v-btn-toggle
-                    v-model="discountType"
-                    color="primary"
-                    density="compact"
-                    divided
-                    mandatory
-                    rounded="lg"
-                    variant="outlined"
-                  >
-                    <v-btn color="primary" size="small" value="percentage">%</v-btn>
-                    <v-btn color="primary" size="small" value="amount">Rp</v-btn>
-                  </v-btn-toggle>
-                </div>
-
-                <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" type="submit">Simpan</AppButton>
-              </v-form>
-            </div>
-          </v-dialog>
-        </app-box>
+              <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" type="submit">Simpan</AppButton>
+            </v-form>
+          </div>
+        </v-dialog>
       </div>
     </v-main>
   </v-app>
@@ -78,11 +72,9 @@
 
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
-  import noDiscount from './assets/no-discount.png'
-  import AppBox from './components/AppBox.vue'
   import AppButton from './components/AppButton.vue'
   import AppCrudUrlInput from './components/AppCrudUrlInput.vue'
-  import AppTitle from './components/AppTitle.vue'
+  import AppEmptyState from './components/AppEmptyState.vue'
   import { useDiscount } from './composables/useDiscount'
 
   const crudUrl = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
