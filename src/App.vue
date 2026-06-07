@@ -91,7 +91,7 @@
         </template>
 
         <v-dialog v-model="showDialog" :persistent="false">
-          <div v-click-outside="() => showDialog = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 lg:w-lg mx-auto">
+          <div v-click-outside="() => showDialog = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 w-full lg:w-lg mx-auto">
             <div class="mb-2 flex justify-between items-center">
               <span class="font-semibold text-xl">
                 {{ editingItem ? 'Ubah Diskon' : 'Tambah Diskon' }}
