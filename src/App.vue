@@ -4,40 +4,7 @@
       <div class="flex flex-col gap-3 h-full">
         <app-title>Daftar Diskon</app-title>
 
-        <v-menu v-model="menuOpen" :close-on-content-click="false">
-          <template #activator="{ props }">
-            <v-text-field
-              v-bind="props"
-              :append-inner-icon="menuOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-              class="md:max-w-sm"
-              hide-details
-              :model-value="selectedShop"
-              placeholder="Pilih atau tambah toko..."
-              prepend-inner-icon="mdi-store"
-              readonly
-              rounded="12"
-              variant="outlined"
-            />
-          </template>
-
-          <v-card class="p-4 rounded-xl" min-width="300">
-            <v-text-field
-              v-model="newShop"
-              autofocus
-              hide-details
-              label="API CRUD"
-              variant="outlined"
-            />
-
-            <AppButton
-              class="mt-2 w-full"
-              :disabled="!newShop"
-              @click="selectedShop = newShop; menuOpen = false"
-            >
-              Simpan
-            </AppButton>
-          </v-card>
-        </v-menu>
+        <AppCrudUrlInput v-model="crudUrl" />
 
         <app-box class="flex flex-col justify-center items-center gap-2 h-full">
           <img alt="No discount" :src="noDiscount" width="240">
@@ -114,14 +81,13 @@
   import noDiscount from './assets/no-discount.png'
   import AppBox from './components/AppBox.vue'
   import AppButton from './components/AppButton.vue'
+  import AppCrudUrlInput from './components/AppCrudUrlInput.vue'
   import AppTitle from './components/AppTitle.vue'
   import { useDiscount } from './composables/useDiscount'
 
-  const menuOpen = ref(false)
-  const newShop = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
-  const selectedShop = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
+  const crudUrl = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
 
-  const crud = useDiscount(selectedShop.value)
+  const crud = useDiscount(crudUrl.value)
 
   const showDialog = ref(false)
   const discountName = ref('')
