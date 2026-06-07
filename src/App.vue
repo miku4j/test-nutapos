@@ -5,13 +5,31 @@
         <div class="flex justify-between items-center">
           <app-title>Daftar Diskon</app-title>
 
-          <AppButton
-            v-if="hasData"
-            prepend-icon="mdi-plus"
-            @click="openCreateDialog"
-          >
-            Tambah Diskon
-          </AppButton>
+          <div v-if="hasData" class="flex gap-2">
+            <AppButton
+              v-if="selected.length === 0"
+              prepend-icon="mdi-plus"
+              @click="openCreateDialog"
+            >
+              Tambah Diskon
+            </AppButton>
+
+            <template v-else>
+              <v-btn
+                class="px-6"
+                color="error"
+                rounded="pill"
+                variant="outlined"
+                @click="selected = []"
+              >
+                Batalkan
+              </v-btn>
+
+              <AppButton color="error" @click="showDeleteConfirm = true">
+                Hapus
+              </AppButton>
+            </template>
+          </div>
         </div>
 
         <div v-if="hasData" class="flex flex-col gap-2 md:items-end md:flex-row">
@@ -33,12 +51,6 @@
           </div>
 
           <div class="grow" />
-
-          <div v-if="selected.length > 0" class="flex">
-            <AppButton color="error" @click="showDeleteConfirm = true">
-              Hapus {{ selected.length }} Terpilih
-            </AppButton>
-          </div>
         </div>
 
         <div v-else class="flex md:self-start">
@@ -66,8 +78,8 @@
             show-select
             style="border: thin solid rgba(var(--v-border-color), var(--v-border-opacity))"
           >
-            <template #item.type="{ item }">
-              {{ item.type === 'percentage' ? '%' : 'Rp' }}
+            <template #item.value="{ item }">
+              {{ formatDiscountValue(item.value, item.type) }}
             </template>
 
             <template #item.actions="{ item }">
@@ -204,6 +216,7 @@
   import AppEmptyState from './components/AppEmptyState.vue'
   import AppTitle from './components/AppTitle.vue'
   import { type Discount, useDiscount } from './composables/useDiscount'
+  import { formatDiscountValue } from './utils/format'
 
   const crudUrl = ref('')
   const crud = useDiscount(crudUrl)
@@ -243,10 +256,9 @@
   ]
 
   const tableHeaders = [
-    { title: 'Nama', key: 'name' },
-    { title: 'Nilai', key: 'value' },
-    { title: 'Tipe', key: 'type' },
-    { title: 'Aksi', key: 'actions', sortable: false },
+    { title: 'Nama Diskon', key: 'name' },
+    { title: 'Nilai Diskon', key: 'value' },
+    { key: 'actions', sortable: false, align: 'end' },
   ]
 
   const hasData = computed(() => crud.data.value.length > 0)
