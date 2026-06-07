@@ -131,14 +131,33 @@
                 </v-btn-toggle>
               </div>
 
-              <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" type="submit">
-                {{ editingItem ? 'Perbarui' : 'Simpan' }}
-              </AppButton>
+              <div class="mt-2 w-full flex justify-between">
+                <AppButton
+                  v-if="editingItem"
+                  color="error"
+                  variant="text"
+                  @click="confirmDeleteFromEdit"
+                >
+                  Hapus
+                </AppButton>
+
+                <AppButton
+                  :class="{
+                    'w-full': !editingItem
+                  }"
+                  :disabled="nameError || valueError || saving"
+                  :loading="saving"
+                  type="submit"
+                >
+                  {{ editingItem ? 'Perbarui' : 'Simpan' }}
+                </AppButton>
+
+              </div>
             </v-form>
           </div>
         </v-dialog>
 
-        <v-dialog v-model="showDeleteConfirm" max-width="400">
+        <v-dialog v-model="showDeleteConfirm">
           <div v-click-outside="() => showDeleteConfirm = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 lg:w-lg mx-auto">
             <div class="mb-2 flex justify-between items-center">
               <span class="font-semibold text-xl">
@@ -312,6 +331,13 @@
     } finally {
       saving.value = false
     }
+  }
+
+  function confirmDeleteFromEdit () {
+    if (!editingItem.value?._id) return
+    selected.value = [editingItem.value._id]
+    showDialog.value = false
+    showDeleteConfirm.value = true
   }
 </script>
 

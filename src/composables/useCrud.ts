@@ -35,7 +35,11 @@ export function useCrud<T extends { _id?: string }> (
     if (res.status === 204) {
       return undefined
     }
-    return res.json()
+    const text = await res.text()
+    if (!text) {
+      return undefined
+    }
+    return JSON.parse(text)
   }
 
   async function list (): Promise<T[]> {
@@ -97,9 +101,10 @@ export function useCrud<T extends { _id?: string }> (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const item = await handleResponse(res) as T
-      data.value = data.value.map(i => (i as any)._id === id ? item : i)
-      return item
+      const item = await handleResponse(res) as T | undefined
+      const updated = item ?? { ...data.value.find(i => (i as any)._id === id), ...payload } as T
+      data.value = data.value.map(i => (i as any)._id === id ? updated : i)
+      return updated
     } catch (error_: any) {
       error.value = error_.message
       throw error_
