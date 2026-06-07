@@ -58,7 +58,9 @@
 
               <v-form ref="formRef" class="flex flex-col gap-4">
                 <v-text-field
+                  ref="nameField"
                   v-model="discountName"
+                  :append-inner-icon="!discountName ? undefined : nameError ? 'mdi-alert-circle' : undefined"
                   hide-details="auto"
                   label="Nama Diskon"
                   placeholder="Misal: Diskon opening, diskon akhir tahun"
@@ -69,7 +71,9 @@
 
                 <div class="flex items-center gap-2">
                   <v-text-field
+                    ref="valueField"
                     v-model="discountValue"
+                    :append-inner-icon="!discountValue ? undefined : valueError ? 'mdi-alert-circle' : undefined"
                     class="flex-1"
                     hide-details="auto"
                     label="Diskon"
@@ -106,7 +110,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import noDiscount from './assets/no-discount.png'
   import AppBox from './components/AppBox.vue'
   import AppButton from './components/AppButton.vue'
@@ -121,6 +125,11 @@
   const discountValue = ref<number | null>(null)
   const discountType = ref<'percentage' | 'amount'>('percentage')
   const formRef = ref<any>(null)
+
+  const nameField = ref<any>(null)
+  const valueField = ref<any>(null)
+  const nameError = computed(() => nameField.value?.errorMessages?.length > 0)
+  const valueError = computed(() => valueField.value?.errorMessages?.length > 0)
 
   const nameRules = [
     (v: string) => !!v?.trim() || 'Nama diskon tidak boleh kosong.',
