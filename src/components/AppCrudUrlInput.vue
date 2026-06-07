@@ -20,9 +20,13 @@
         v-model="urlInput"
         autofocus
         hide-details
-        label="URL CRUD"
+        label="URL CRUDCRUD.COM"
         variant="outlined"
       />
+
+      <p class="text-xs opacity-50 mt-1">
+        Example: https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5
+      </p>
 
       <AppButton
         class="mt-2 w-full"
