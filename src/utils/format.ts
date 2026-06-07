@@ -1,4 +1,4 @@
-const currencyFormat = new Intl.NumberFormat('id-ID')
+export const currencyFormat = new Intl.NumberFormat('id-ID')
 
 export function formatDiscountValue (value: number, type: 'percentage' | 'amount'): string {
   if (type === 'percentage') {

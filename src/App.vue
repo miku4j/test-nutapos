@@ -116,17 +116,18 @@
               <div class="flex items-center gap-2">
                 <v-text-field
                   ref="valueField"
-                  v-model="discountValue"
-                  :append-inner-icon="!discountValue ? undefined : valueError ? 'mdi-alert-circle' : undefined"
+                  :append-inner-icon="!discountValueDisplay ? undefined : valueError ? 'mdi-alert-circle' : undefined"
                   class="flex-1"
                   hide-details="auto"
                   label="Diskon"
+                  :model-value="discountValueDisplay"
                   :prefix="discountType === 'amount' ? 'Rp' : undefined"
                   rounded="12"
                   :rules="valueRules"
                   :suffix="discountType === 'percentage' ? '%' : undefined"
-                  type="number"
+                  type="text"
                   variant="outlined"
+                  @update:model-value="onDiscountValueUpdate"
                 />
 
                 <v-btn-toggle
@@ -179,7 +180,13 @@
               <v-btn icon="mdi-close" size="small" variant="text" @click="showDeleteConfirm = false" />
             </div>
 
-            <p>Apakah Anda yakin ingin menghapus diskon yang dipilih? Diskon yang dihapus tidak bisa dikembalikan lagi.</p>
+            <div>
+              <p>Apakah Anda yakin ingin menghapus diskon yang dipilih?</p>
+
+              <ul class="flex flex-col gap-2 list-disc list-inside">
+                <li>Diskon yang dihapus tidak bisa dikembalikan lagi.</li>
+              </ul>
+            </div>
 
             <div class="flex gap-2 justify-end">
               <v-btn
@@ -216,7 +223,7 @@
   import AppEmptyState from './components/AppEmptyState.vue'
   import AppTitle from './components/AppTitle.vue'
   import { type Discount, useDiscount } from './composables/useDiscount'
-  import { formatDiscountValue } from './utils/format'
+  import { currencyFormat, formatDiscountValue } from './utils/format'
 
   const crudUrl = ref('')
   const crud = useDiscount(crudUrl)
@@ -231,6 +238,16 @@
   const discountValue = ref<number | null>(null)
   const discountType = ref<'percentage' | 'amount'>('percentage')
   const formRef = ref<any>(null)
+
+  const discountValueDisplay = computed(() => {
+    if (discountValue.value === null) return ''
+    return currencyFormat.format(discountValue.value)
+  })
+
+  function onDiscountValueUpdate (val: string | null) {
+    const cleaned = (val ?? '').replace(/[^0-9]/g, '')
+    discountValue.value = cleaned ? Number(cleaned) : null
+  }
   const saving = ref(false)
 
   const nameField = ref<any>(null)
@@ -244,14 +261,23 @@
     (v: string) => (v?.trim()?.length ?? 0) <= 128 || 'Maximal 128 karakter',
   ]
 
+  function parseDisplayValue (v: string): number | null {
+    const cleaned = v.replace(/[^0-9]/g, '')
+    return cleaned ? Number(cleaned) : null
+  }
+
   const valueRules = [
-    (v: number | null) => v != null || 'Diskon tidak boleh kosong.',
-    (v: number | null) => v == null || v > 0 || 'Nilai harus lebih dari 0',
-    (v: number | null) => {
-      if (v == null) return true
+    (v: string) => parseDisplayValue(v) != null || 'Diskon tidak boleh kosong.',
+    (v: string) => {
+      const num = parseDisplayValue(v)
+      return num == null || num > 0 || 'Nilai harus lebih dari 0'
+    },
+    (v: string) => {
+      const num = parseDisplayValue(v)
+      if (num == null) return true
       const max = discountType.value === 'percentage' ? 100 : 10_000_000
       const msg = discountType.value === 'percentage' ? 'Maksimal 100%' : 'Maksimal Rp 10.000.000'
-      return v <= max || msg
+      return num <= max || msg
     },
   ]
 
@@ -259,7 +285,7 @@
     { title: 'Nama Diskon', key: 'name' },
     { title: 'Nilai Diskon', key: 'value' },
     { key: 'actions', sortable: false, align: 'end' },
-  ]
+  ] as const
 
   const hasData = computed(() => crud.data.value.length > 0)
 
