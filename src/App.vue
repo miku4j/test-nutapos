@@ -8,6 +8,8 @@
           <template #activator="{ props }">
             <v-text-field
               v-bind="props"
+              :append-inner-icon="menuOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+              class="md:max-w-sm"
               hide-details
               :model-value="selectedShop"
               placeholder="Pilih atau tambah toko..."
@@ -18,7 +20,7 @@
             />
           </template>
 
-          <v-card class="p-4" min-width="300">
+          <v-card class="p-4 rounded-xl" min-width="300">
             <v-text-field
               v-model="newShop"
               autofocus
