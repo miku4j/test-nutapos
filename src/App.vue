@@ -104,7 +104,8 @@
               <v-text-field
                 ref="nameField"
                 v-model="discountName"
-                :append-inner-icon="!discountName ? undefined : nameError ? 'mdi-alert-circle' : undefined"
+                :append-inner-icon="nameErrorMsg ? 'mdi-alert-circle' : undefined"
+                :error-messages="nameErrorMsg ? [nameErrorMsg] : undefined"
                 hide-details="auto"
                 label="Nama Diskon"
                 placeholder="Misal: Diskon opening, diskon akhir tahun"
@@ -217,7 +218,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, watch } from 'vue'
+  import { computed, nextTick, ref, watch } from 'vue'
   import AppButton from './components/AppButton.vue'
   import AppCrudUrlInput from './components/AppCrudUrlInput.vue'
   import AppEmptyState from './components/AppEmptyState.vue'
@@ -236,6 +237,11 @@
 
   const discountName = ref('')
   const discountValue = ref<number | null>(null)
+  const nameErrorMsg = ref('')
+
+  watch(discountName, () => {
+    nameErrorMsg.value = ''
+  })
   const discountType = ref<'percentage' | 'amount'>('percentage')
   const formRef = ref<any>(null)
 
@@ -328,10 +334,22 @@
     const { valid } = await formRef.value?.validate() ?? { valid: ref(false) }
     if (!valid) return
 
+    const trimmedName = discountName.value.trim()
+    const duplicate = crud.data.value.find(d => {
+      if (editingItem.value && d._id === editingItem.value._id) return false
+      return d.name.toLowerCase() === trimmedName.toLowerCase()
+    })
+    if (duplicate) {
+      nameErrorMsg.value = 'Nama diskon sudah digunakan, silahkan gunakan nama lain.'
+      await nextTick()
+      nameField.value?.focus()
+      return
+    }
+
     saving.value = true
     try {
       const payload = {
-        name: discountName.value.trim(),
+        name: trimmedName,
         value: discountValue.value!,
         type: discountType.value,
       }
@@ -340,7 +358,7 @@
         showToast(`Diskon "${editingItem.value.name}" berhasil diperbarui`)
       } else {
         await crud.create(payload)
-        showToast(`Diskon "${discountName.value.trim()}" berhasil ditambahkan`)
+        showToast(`Diskon "${trimmedName}" berhasil ditambahkan`)
       }
       showDialog.value = false
       formRef.value?.reset()
