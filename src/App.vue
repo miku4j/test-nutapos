@@ -14,7 +14,7 @@
           </AppButton>
         </div>
 
-        <div v-if="hasData" class="flex flex-col gap-2 md:flex-row md:self-start">
+        <div v-if="hasData" class="flex flex-col gap-2 md:items-end md:flex-row">
           <div>
             <v-text-field
               v-model="search"
@@ -28,14 +28,24 @@
 
           </div>
 
-          <AppCrudUrlInput v-model="crudUrl" />
+          <div class="md:max-w-sm">
+            <AppCrudUrlInput v-model="crudUrl" />
+          </div>
+
+          <div class="grow" />
+
+          <div v-if="selected.length > 0" class="flex">
+            <AppButton color="error" @click="showDeleteConfirm = true">
+              Hapus {{ selected.length }} Terpilih
+            </AppButton>
+          </div>
         </div>
 
         <div v-else class="flex md:self-start">
           <AppCrudUrlInput v-model="crudUrl" />
         </div>
 
-        <div v-if="crudUrl && crud.loading.value" class="flex grow justify-center pa-4">
+        <div v-if="crudUrl && !hasData && crud.loading.value" class="flex grow justify-center pa-4">
           <v-progress-circular indeterminate />
         </div>
 
@@ -48,11 +58,13 @@
         <template v-if="crudUrl && hasData">
           <v-data-table
             v-model="selected"
+            class="rounded-xl"
             :headers="tableHeaders"
             item-value="_id"
             :items="discountsList"
             :loading="crud.loading.value"
             show-select
+            style="border: thin solid rgba(var(--v-border-color), var(--v-border-opacity))"
           >
             <template #item.type="{ item }">
               {{ item.type === 'percentage' ? '%' : 'Rp' }}
@@ -64,12 +76,6 @@
               </AppButton>
             </template>
           </v-data-table>
-
-          <div v-if="selected.length > 0" class="flex">
-            <AppButton @click="showDeleteConfirm = true">
-              Hapus {{ selected.length }} Terpilih
-            </AppButton>
-          </div>
         </template>
 
         <v-dialog v-model="showDialog" :persistent="false">
@@ -133,19 +139,30 @@
         </v-dialog>
 
         <v-dialog v-model="showDeleteConfirm" max-width="400">
-          <v-card>
-            <v-card-title>Hapus Diskon</v-card-title>
+          <div v-click-outside="() => showDeleteConfirm = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 lg:w-lg mx-auto">
+            <div class="mb-2 flex justify-between items-center">
+              <span class="font-semibold text-xl">
+                Hapus Diskon
+              </span>
 
-            <v-card-text>
-              Yakin ingin menghapus {{ selected.length }} diskon terpilih?
-            </v-card-text>
+              <v-btn icon="mdi-close" size="small" variant="text" @click="showDeleteConfirm = false" />
+            </div>
 
-            <v-card-actions>
-              <v-spacer />
-              <v-btn rounded="pill" variant="text" @click="showDeleteConfirm = false">Batal</v-btn>
-              <AppButton @click="confirmBulkDelete">Hapus</AppButton>
-            </v-card-actions>
-          </v-card>
+            <p>Apakah Anda yakin ingin menghapus diskon yang dipilih? Diskon yang dihapus tidak bisa dikembalikan lagi.</p>
+
+            <div class="flex gap-2 justify-end">
+              <v-btn
+                class="px-6"
+                color="error"
+                rounded="pill"
+                variant="outlined"
+                @click="showDeleteConfirm = false"
+              >Batalkan</v-btn>
+
+              <AppButton class="px-6" color="error" @click="confirmBulkDelete">Hapus</AppButton>
+
+            </div>
+          </div>
         </v-dialog>
       </div>
 
@@ -297,3 +314,9 @@
     }
   }
 </script>
+
+<style scoped>
+.v-data-table :deep(thead) {
+  background-color: rgba(var(--v-theme-surface-variant), 0.1);
+}
+</style>
