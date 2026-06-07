@@ -1,18 +1,82 @@
 <template>
   <v-app>
-    <v-main class="m-4">
+    <v-main class="p-4 bg-surface">
       <div class="flex flex-col gap-3 h-full">
-        <app-title>Daftar Diskon</app-title>
+        <div class="flex justify-between items-center">
+          <app-title>Daftar Diskon</app-title>
 
-        <AppCrudUrlInput v-model="crudUrl" />
+          <AppButton
+            v-if="hasData"
+            prepend-icon="mdi-plus"
+            @click="openCreateDialog"
+          >
+            Tambah Diskon
+          </AppButton>
+        </div>
 
-        <AppEmptyState @create="showDialog = true" />
+        <div v-if="hasData" class="flex flex-col gap-2 md:flex-row md:self-start">
+          <div>
+            <v-text-field
+              v-model="search"
+              class="flex-1 md:min-w-sm"
+              hide-details
+              placeholder="Cari diskon..."
+              prepend-inner-icon="mdi-magnify"
+              rounded="12"
+              variant="outlined"
+            />
+
+          </div>
+
+          <AppCrudUrlInput v-model="crudUrl" />
+        </div>
+
+        <div v-else class="flex md:self-start">
+          <AppCrudUrlInput v-model="crudUrl" />
+        </div>
+
+        <div v-if="crudUrl && crud.loading.value" class="flex grow justify-center pa-4">
+          <v-progress-circular indeterminate />
+        </div>
+
+        <AppEmptyState
+          v-if="!hasData && !crud.loading.value"
+          :disable-add="!crudUrl"
+          @create="openCreateDialog"
+        />
+
+        <template v-if="crudUrl && hasData">
+          <v-data-table
+            v-model="selected"
+            :headers="tableHeaders"
+            item-value="_id"
+            :items="discountsList"
+            :loading="crud.loading.value"
+            show-select
+          >
+            <template #item.type="{ item }">
+              {{ item.type === 'percentage' ? '%' : 'Rp' }}
+            </template>
+
+            <template #item.actions="{ item }">
+              <AppButton size="small" variant="text" @click="openEditDialog(item)">
+                <v-icon>mdi-pencil</v-icon>
+              </AppButton>
+            </template>
+          </v-data-table>
+
+          <div v-if="selected.length > 0" class="flex">
+            <AppButton @click="showDeleteConfirm = true">
+              Hapus {{ selected.length }} Terpilih
+            </AppButton>
+          </div>
+        </template>
 
         <v-dialog v-model="showDialog" :persistent="false">
           <div v-click-outside="() => showDialog = false" class="bg-background p-6 pt-4 rounded-3xl flex flex-col gap-4 lg:w-lg mx-auto">
             <div class="mb-2 flex justify-between items-center">
               <span class="font-semibold text-xl">
-                Tambah Diskon
+                {{ editingItem ? 'Ubah Diskon' : 'Tambah Diskon' }}
               </span>
 
               <v-btn icon="mdi-close" size="small" variant="text" @click="showDialog = false" />
@@ -61,27 +125,59 @@
                 </v-btn-toggle>
               </div>
 
-              <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" type="submit">Simpan</AppButton>
+              <AppButton class="mt-2 w-full" :disabled="nameError || valueError || saving" :loading="saving" type="submit">
+                {{ editingItem ? 'Perbarui' : 'Simpan' }}
+              </AppButton>
             </v-form>
           </div>
         </v-dialog>
+
+        <v-dialog v-model="showDeleteConfirm" max-width="400">
+          <v-card>
+            <v-card-title>Hapus Diskon</v-card-title>
+
+            <v-card-text>
+              Yakin ingin menghapus {{ selected.length }} diskon terpilih?
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer />
+              <v-btn rounded="pill" variant="text" @click="showDeleteConfirm = false">Batal</v-btn>
+              <AppButton @click="confirmBulkDelete">Hapus</AppButton>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </div>
+
+      <v-snackbar
+        v-model="showSnackbar"
+        :color="snackbarColor"
+        location="top center"
+        timeout="3000"
+      >
+        {{ snackbarMessage }}
+      </v-snackbar>
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import AppButton from './components/AppButton.vue'
   import AppCrudUrlInput from './components/AppCrudUrlInput.vue'
   import AppEmptyState from './components/AppEmptyState.vue'
-  import { useDiscount } from './composables/useDiscount'
+  import AppTitle from './components/AppTitle.vue'
+  import { type Discount, useDiscount } from './composables/useDiscount'
 
-  const crudUrl = ref('https://crudcrud.com/api/ff69fc6f98634e39be6da892de89d8e5')
+  const crudUrl = ref('')
+  const crud = useDiscount(crudUrl)
 
-  const crud = useDiscount(crudUrl.value)
+  const search = ref('')
+  const selected = ref<string[]>([])
 
   const showDialog = ref(false)
+  const editingItem = ref<Discount | null>(null)
+
   const discountName = ref('')
   const discountValue = ref<number | null>(null)
   const discountType = ref<'percentage' | 'amount'>('percentage')
@@ -110,22 +206,92 @@
     },
   ]
 
+  const tableHeaders = [
+    { title: 'Nama', key: 'name' },
+    { title: 'Nilai', key: 'value' },
+    { title: 'Tipe', key: 'type' },
+    { title: 'Aksi', key: 'actions', sortable: false },
+  ]
+
+  const hasData = computed(() => crud.data.value.length > 0)
+
+  const discountsList = computed(() => {
+    if (!search.value) return crud.data.value
+    const q = search.value.toLowerCase()
+    return crud.data.value.filter(d => d.name.toLowerCase().includes(q))
+  })
+
+  watch(crudUrl, url => {
+    if (url) {
+      crud.list()
+    }
+  })
+
+  const showSnackbar = ref(false)
+  const snackbarMessage = ref('')
+  const snackbarColor = ref('success')
+
+  function showToast (message: string, color = 'success') {
+    snackbarMessage.value = message
+    snackbarColor.value = color
+    showSnackbar.value = true
+  }
+
+  function openCreateDialog () {
+    editingItem.value = null
+    discountName.value = ''
+    discountValue.value = null
+    discountType.value = 'percentage'
+    showDialog.value = true
+  }
+
+  function openEditDialog (item: Discount) {
+    editingItem.value = item
+    discountName.value = item.name
+    discountValue.value = item.value
+    discountType.value = item.type
+    showDialog.value = true
+  }
+
   async function submit () {
     const { valid } = await formRef.value?.validate() ?? { valid: ref(false) }
     if (!valid) return
 
     saving.value = true
     try {
-      await crud.create({
+      const payload = {
         name: discountName.value.trim(),
         value: discountValue.value!,
         type: discountType.value,
-      })
+      }
+      if (editingItem.value) {
+        await crud.update(editingItem.value._id!, payload)
+        showToast('Diskon berhasil diperbarui')
+      } else {
+        await crud.create(payload)
+        showToast('Diskon berhasil ditambahkan')
+      }
       showDialog.value = false
       formRef.value?.reset()
       discountName.value = ''
       discountValue.value = null
       discountType.value = 'percentage'
+    } finally {
+      saving.value = false
+    }
+  }
+
+  const showDeleteConfirm = ref(false)
+
+  async function confirmBulkDelete () {
+    showDeleteConfirm.value = false
+    saving.value = true
+    try {
+      for (const id of selected.value) {
+        await crud.remove(id)
+      }
+      selected.value = []
+      showToast('Diskon berhasil dihapus')
     } finally {
       saving.value = false
     }

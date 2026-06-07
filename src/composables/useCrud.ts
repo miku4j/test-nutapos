@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 
 export interface CrudState<T> {
   data: Ref<T[]>
@@ -18,14 +18,14 @@ export interface CrudMethods<T extends { _id?: string }> {
 export type UseCrudReturn<T extends { _id?: string }> = CrudState<T> & CrudMethods<T>
 
 export function useCrud<T extends { _id?: string }> (
-  url: string,
+  url: Ref<string>,
   resource: string,
 ): UseCrudReturn<T> {
   const data = ref<T[]>([]) as Ref<T[]>
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const baseUrl = `${url}/${resource}`
+  const baseUrl = computed(() => `${url.value}/${resource}`)
 
   async function handleResponse (res: Response): Promise<any> {
     if (!res.ok) {
@@ -42,7 +42,7 @@ export function useCrud<T extends { _id?: string }> (
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(baseUrl)
+      const res = await fetch(baseUrl.value)
       const items = await handleResponse(res) as T[]
       data.value = items
       return items
@@ -58,7 +58,7 @@ export function useCrud<T extends { _id?: string }> (
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(`${baseUrl}/${id}`)
+      const res = await fetch(`${baseUrl.value}/${id}`)
       return await handleResponse(res) as T
     } catch (error_: any) {
       error.value = error_.message
@@ -72,7 +72,7 @@ export function useCrud<T extends { _id?: string }> (
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(baseUrl, {
+      const res = await fetch(baseUrl.value, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -92,7 +92,7 @@ export function useCrud<T extends { _id?: string }> (
     loading.value = true
     error.value = null
     try {
-      const res = await fetch(`${baseUrl}/${id}`, {
+      const res = await fetch(`${baseUrl.value}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -112,7 +112,7 @@ export function useCrud<T extends { _id?: string }> (
     loading.value = true
     error.value = null
     try {
-      await fetch(`${baseUrl}/${id}`, { method: 'DELETE' })
+      await fetch(`${baseUrl.value}/${id}`, { method: 'DELETE' })
       data.value = data.value.filter(i => (i as any)._id !== id)
     } catch (error_: any) {
       error.value = error_.message

@@ -3,7 +3,7 @@
     <img alt="No discount" :src="noDiscount" width="240">
     <app-title class="mt-2" :level="2">Belum Ada Diskon</app-title>
     <p class="text-center">Silahkan tambah diskon untuk menarik pelanggan dan meningkatakan penjualan.</p>
-    <AppButton prepend-icon="mdi-plus" @click="$emit('create')">Tambah Diskon</AppButton>
+    <AppButton :disabled="disableAdd" prepend-icon="mdi-plus" @click="$emit('create')">Tambah Diskon</AppButton>
   </app-box>
 </template>
 
@@ -13,5 +13,6 @@
   import AppButton from './AppButton.vue'
   import AppTitle from './AppTitle.vue'
 
+  defineProps<{ disableAdd?: boolean }>()
   defineEmits<{ create: [] }>()
 </script>

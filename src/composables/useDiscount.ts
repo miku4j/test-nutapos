@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import { useCrud } from './useCrud'
 
 export interface Discount {
@@ -7,6 +8,6 @@ export interface Discount {
   type: 'percentage' | 'amount'
 }
 
-export function useDiscount (url: string) {
+export function useDiscount (url: Ref<string>) {
   return useCrud<Discount>(url, 'discounts')
 }

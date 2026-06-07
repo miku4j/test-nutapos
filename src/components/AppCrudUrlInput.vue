@@ -4,7 +4,7 @@
       <v-text-field
         v-bind="activatorProps"
         :append-inner-icon="menuOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-        class="md:max-w-sm"
+        class="md:min-w-sm"
         hide-details
         :model-value="modelValue"
         placeholder="Masukkan URL CRUD..."
